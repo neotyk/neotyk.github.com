@@ -1,0 +1,91 @@
+<html>
+  <head>
+    <title>Force-Directed Layout with Highlighting</title>
+    <script type="text/javascript" src="protovis.min.js"></script>
+    <script type="text/javascript" src="miserables.js"></script>
+    <style type="text/css">
+
+body {
+  margin: 0;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript+protovis">
+
+// graph data
+var g = {};
+
+function addToGraph(n1, n2) {
+    if (g[n1] == undefined) {
+        g[n1] = [n2];
+    } else {
+        g[n1].push(n2);
+    }
+}
+
+// build graph data
+for (var i = 0; i < miserables.links.length; i++) {
+    var n1 = miserables.links[i].source,
+        n2 = miserables.links[i].target;
+    addToGraph(n1, n2);
+    addToGraph(n2, n1);
+}
+
+// what gets highlighted
+function highlight(active, i) {
+    for (var j = 0; j < g[i].length; j++) {
+        if (g[i][j] == active) return true;
+    }
+    return false;
+}
+
+var w = document.body.clientWidth,
+    h = document.body.clientHeight,
+    colors = pv.Colors.category19();
+
+var vis = new pv.Panel()
+    .def("active", -1)
+    .width(w)
+    .height(h)
+    .fillStyle("white")
+    .event("all")
+    .event("mousedown", pv.Behavior.pan())
+    .event("mousewheel", pv.Behavior.zoom())
+    .event("mousemove", pv.Behavior.point());
+
+var force = vis.add(pv.Layout.Force)
+    .nodes(miserables.nodes)
+    .links(miserables.links);
+
+force.link.add(pv.Line);
+
+force.node.add(pv.Dot)
+    .size(function(d) (d.linkDegree + 4) * Math.pow(this.scale, -1.5))
+    .fillStyle(function(d) {
+        if (d.fix) return "brown";
+        if (vis.active() == this.index) return colors(d.group);
+        if (highlight(vis.active(), this.index)) return colors(d.group).alpha(.7);
+        return colors(d.group).alpha(.4); })
+    .strokeStyle(function() this.fillStyle().darker())
+    .lineWidth(1)
+    .title(function(d) d.nodeName)
+    .event("mousedown", pv.Behavior.drag())
+    .event("drag", force)
+    .event("point", function() {
+        vis.active(this.index);
+        return this.parent; })
+    .event("unpoint", function() {
+        vis.active(-1);
+        return this.parent; })
+    .anchor("right")
+    .add(pv.Label)
+    .visible(function() (vis.active() == this.index) || (highlight (vis.active(), this.index)))
+    .text(function(d) d.nodeName);
+
+vis.render();
+
+    </script>
+  </body>
+</html>
