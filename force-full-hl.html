@@ -4,16 +4,13 @@
     <script type="text/javascript" src="protovis.min.js"></script>
     <script type="text/javascript" src="miserables.js"></script>
     <style type="text/css">
-
 body {
   margin: 0;
 }
-
     </style>
   </head>
   <body>
     <script type="text/javascript+protovis">
-
 // graph data
 var g = {};
 
@@ -26,12 +23,16 @@ function addToGraph(n1, n2) {
 }
 
 // build graph data
-for (var i = 0; i < miserables.links.length; i++) {
-    var n1 = miserables.links[i].source,
-        n2 = miserables.links[i].target;
-    addToGraph(n1, n2);
-    addToGraph(n2, n1);
+function createGraphData (links) {
+    for (var i = 0; i < links.length; i++) {
+        var n1 = links[i].source,
+            n2 = links[i].target;
+        addToGraph(n1, n2);
+        addToGraph(n2, n1);
+    }
 }
+
+createGraphData (miserables.links);
 
 // what gets highlighted
 function highlight(active, i) {
@@ -85,7 +86,6 @@ force.node.add(pv.Dot)
     .text(function(d) d.nodeName);
 
 vis.render();
-
     </script>
   </body>
 </html>
